@@ -1,0 +1,12 @@
+[main]
+.\aacsTemplate.tex
+
+[texfiles]
+.\conclusion.tex
+.\hardwaresupport.tex
+.\integration.tex
+.\introduction.tex
+.\modeldesign.tex
+.\itemsetmining.bib
+.\reni.bib
+
