@@ -1,32 +1,8 @@
 \section{Introduction}
-\label{sec:Introdu}
+\label{sec:Introduction}
 
-A dokumentum abból a célból jött létre, hogy segítséget nyújtson \verb!STM32F4-Discovery! board alapú projektek fejlesztéséhez. A szükséges lépések nagyrészét igyekszünk bemutatni valós alkalmazások segítségével, melyeknek túlnyomó többsége a 2014-es \textbf{RobonAUT} versenyre történő felkészülés közben került kivitelezésre. A problémák számunkra is újak voltak, így nem ígérhetjük, hogy a legjobb megoldásokat fogjuk prezentálni itt, de a bemutatott eljárásról kijelenthetjük, hogy hasznosnak és megbízhatónak bizonyult.
+The RobonAUT is an annual contest of the Department of Automation and Applied Informatics at the Budapest University of Technology and Economics. Each year many teams, consisting three students each design and build autonomous model cars that battle on an obstacle course, and race each other on a race track. The robots must be completely autonomous, lack any remote control and any kind of external intervention during the race is punished. The team whose car gathers the most points wins the contest in the end\cite{rules}.
 
-Az írást három fő részre osztottuk, először bemutatásra kerülnek a \verb!MATLAB-Simulink! modell alapú tervezés lépései és a fordítható kód generálása. Ezután a generált kód integrálására és élesztésére térünk rá \verb!FreeRTOS! operációs rendszer alatt, legvégül pedig valós gyors prototípustervezési technikák kerülnek bemutatásra, a \verb!MATLAB! közvetlen \verb!STM32F4-Discovery! hardware támogatását felhasználva.
+Even with such simple robots, there's enormous amounts of work, including the design of the system hardware carrying the sensor array, the software capable of recognizing and handling obstacles, a client software to ensure a safe testing environment and an efficient control system tasked to keep the the car "in line" while sweeping through the racetrack. As the fame of the competition grows, the expectations towards the cars heighten and teams become more ferocious to win. This all causes the pressure on the students to enlarge, while they have to hold their own in other challenges throughout the semester. For these reasons, we looked beyond the methods of classic software development, and employed a different methodology used often in \textbf{Rapid Prototyping}, called the \textbf{Model Based Design}.
 
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[width=0.9\linewidth]{img/cartop}
-    \caption{A probléma sematikus ábrája felülnézetből}
-    \label{fig:cartop}
-\end{figure}
-
-A \textbf{RobonAUT} verseny során egy olyan robot szoftverét és hardverét kell elkészíteni, amely lehetővé teszi a távirányítós autóból átalakított platformot, hogy egy ismeretlen pályán végighaladjon, és ott akadályokat teljesítsen, a szabályzatban meghatározott módon. A továbbiakban csak a szoftver környezettel foglalkozunk és feltételezzük, hogy megfelelő logikai jelek zajjal terhelten bár, de rendelkezésre állnak a szenzorokból, illetve az autó várakozásainknak megfelelően reagál a kimeneti jelekre, pl. a kormányszög beállítására.
-
-A dokumentumban próbáljuk a szakirodalomban elterjedt jelrendszert alkalmazni, de az alábbi táblázat segítségével magyarázzuk a rendszeresen előforduló jelöléseket és összefüggéseket. Amennyiben valami hiányzik innen, az a szövegkörnyezetben kerül definiálásra.
-
-\begin{center}
-  \begin{tabular}{| c | p{0.8\linewidth} |}
-\hline
-    d & Pozícióhiba: Az első optikai szenzorsor középpontjának távolsága a vonaltól \\ \hline
-    $ \delta $ & Szöghiba: Az első optikai szenzorsorra merőleges egyenes (középvonal) és a pályavonal érintője által bezárt szög \\ \hline
-    $ \Phi $ & Kormányszög: A kerekek síkjainak a középvonallal bezárt szögeinek átlaga, Ackermann-kormányzás szerint \\
-    \hline
-    $ \kappa $ & A pálya pillanatnyi görbülete ($1/R$) \\ \hline
-    x & Vonalpozíció: az első optikai szenzorsor által érzékelt vonalak középpontjának előjeles távolsága a szenzorsoron a közepponttól mérve. \\ \hline
-    c & Vonalsebesség: x első deriváltja, a vonalpozíció mozgásának sebessége \\ \hline
-    v & Sebesség: Az autó pillanatnyi sebessége a középvonal mentén \\
-    \hline
-  \end{tabular}
-\end{center}
+In the first part of the article we'll demonstrate how the focus of the software development has shifted from the actual coding to a more visual and mathematical representation of the system, and how to harness it's traits to \emph{quickly} develop a \emph{reliable} system. In the second part we'll describe how to use the \verb!MATLAB! \verb!Coder! auto code generation tool and integrate the source with (the?) \verb!FreeRTOS! (hard real-time operating system?) and deploy it on the target hardware, the \verb!STM32F4-Discovery! developer board.

@@ -1,3 +1,23 @@
+A \textbf{RobonAUT} verseny során egy olyan robot szoftverét és hardverét kell elkészíteni, amely lehetővé teszi a távirányítós autóból átalakított platformot, hogy egy ismeretlen pályán végighaladjon, és ott akadályokat teljesítsen, a szabályzatban meghatározott módon. A továbbiakban csak a szoftver környezettel foglalkozunk és feltételezzük, hogy megfelelő logikai jelek zajjal terhelten bár, de rendelkezésre állnak a szenzorokból, illetve az autó várakozásainknak megfelelően reagál a kimeneti jelekre, pl. a kormányszög beállítására.
+
+A dokumentumban próbáljuk a szakirodalomban elterjedt jelrendszert alkalmazni, de az alábbi táblázat segítségével magyarázzuk a rendszeresen előforduló jelöléseket és összefüggéseket. Amennyiben valami hiányzik innen, az a szövegkörnyezetben kerül definiálásra.
+
+\begin{center}
+  \begin{tabular}{| c | p{0.8\linewidth} |}
+\hline
+    d & Pozícióhiba: Az első optikai szenzorsor középpontjának távolsága a vonaltól \\ \hline
+    $ \delta $ & Szöghiba: Az első optikai szenzorsorra merőleges egyenes (középvonal) és a pályavonal érintője által bezárt szög \\ \hline
+    $ \Phi $ & Kormányszög: A kerekek síkjainak a középvonallal bezárt szögeinek átlaga, Ackermann-kormányzás szerint \\
+    \hline
+    $ \kappa $ & A pálya pillanatnyi görbülete ($1/R$) \\ \hline
+    x & Vonalpozíció: az első optikai szenzorsor által érzékelt vonalak középpontjának előjeles távolsága a szenzorsoron a közepponttól mérve. \\ \hline
+    c & Vonalsebesség: x első deriváltja, a vonalpozíció mozgásának sebessége \\ \hline
+    v & Sebesség: Az autó pillanatnyi sebessége a középvonal mentén \\
+    \hline
+  \end{tabular}
+\end{center}
+
+
 \section{Modell alapú fejlesztés}
 
 A modell alapú fejlesztés a probléma vizuális, rendszerszintű megközelítésén alapul. Segítségével a fejlesztés során a hangsúly a technológiák implementálásáról átkerül a problémák gyökereinek feltárására, és matematikai megoldások keresésére. A fejlesztés során csak kevés kapcsolat van a tényleges rendszerrel, mivel a megoldások helyességét az eszközről alkotott modell segítségével, szimulációval ellenőrizzük, illetve egy-egy mérföldkő elérésekor elég megbizonyosodni arról, hogy a rendszer valóban jól működik a valóságban is.
