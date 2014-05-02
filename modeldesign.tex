@@ -1,44 +1,76 @@
-A \textbf{RobonAUT} verseny során egy olyan robot szoftverét és hardverét kell elkészíteni, amely lehetővé teszi a távirányítós autóból átalakított platformot, hogy egy ismeretlen pályán végighaladjon, és ott akadályokat teljesítsen, a szabályzatban meghatározott módon. A továbbiakban csak a szoftver környezettel foglalkozunk és feltételezzük, hogy megfelelő logikai jelek zajjal terhelten bár, de rendelkezésre állnak a szenzorokból, illetve az autó várakozásainknak megfelelően reagál a kimeneti jelekre, pl. a kormányszög beállítására.
+\section{Related work}
 
-A dokumentumban próbáljuk a szakirodalomban elterjedt jelrendszert alkalmazni, de az alábbi táblázat segítségével magyarázzuk a rendszeresen előforduló jelöléseket és összefüggéseket. Amennyiben valami hiányzik innen, az a szövegkörnyezetben kerül definiálásra.
+\subsection{Classic software design approach}
+Explain what it lacks
+
+C does not do any run time or compile time bounds checking in arrays. At run time the code will just access or mangle whatever memory it happens to hit and crash or misbehave in some unpredictable way thereafter. "Professional programmer's language." - Nick Parlante\cite{clanguage}
+
+\subsection{Other model based design approaches}
+In 2014, another competing team has turned towards model based design [cite, Need for PID]. Blabla about their results.
+Explain what it lacks. (special hardware requirements for example)
+
+\subsection{Background} 
+
+For the \textbf{RobonAUT 2014} contest, we used \verb!MATLAB! and \verb!Simulink! to implement the control system and the state machine. We chose the \verb!MathWorks! product family, because \verb!Simulink! has extensive support for model and simulation based development, and supports the generation of generic \verb!C! source code that can be later used on any hardware that is capable of running \verb!FreeRTOS! or any other hard real-time operating systems.
+
+A typical system designed in \verb!MATLAB! can be divided to three parts. There's a \verb!MATLAB! \verb!Script! that defines the system model and computes the simulator and controller parameters. Based on these parameters we can build the simulator and control software in \verb!Simulink! that interact with each other. If the system response in the simulation is correct, the controller is ready for code generation, and field-testing.
+
+[figure about these relations: matlab script on top, simulator and controller equal, controller goes below to hardware with code generation, ]
+
+% Contributions
+\section{Model based design of the high level software}
+
+As described earlier, the Model based design is based on solving the problems in a more visual environment. During the development, there's  limited connection between the designed software and the real hardware, as many of the solutions can be verified using the simulated model of the system.
+
+In addition, with the use of the correct methods the result is not only the solution for the problem, but an automation that can formulate this solution for a given model. This means, that even if significant changes occur in the specifications, only minimal amount of modification is required to the code that formulates the software. This advantage can't be over emphasized, because the final specifications of the system are rarely known, especially in prototype development.
+
+In conclusion, we claim that the using model based design in robotic software development results in a quick and efficient work.
+[lot of refinements required in this part]
+
+% Case study starts here
+\subsection{Case study}
+
+In the first part of the article we will demonstrate how the focus of the software development has shifted from the actual coding to a more visual and mathematical representation of the system, and how to harness its traits to \emph{quickly} develop a \emph{reliable} system. In the second part it will be described how to use the \verb!MATLAB! \verb!Coder! auto code generation tool and how to integrate the source with (the?) \verb!FreeRTOS! (hard real-time operating system?) and deploy it on the target hardware, the \verb!STM32F4-Discovery! developer board.
+
+\subsection{Functional description}
+
+During the race, the track is marked by a dark line on light ground. The car follows this line that guides it through certain checkpoints. Between checkpoints, there are obstacles that need to be passed in a specific way. Each obstacle is marked in a unique way that allows the car to unambiguously determine, based on simple on-board sensors, which function it has to execute in the current segment.
+
+The recommended sensor loadout\cite[sensors] is a number of optoelectronic sensors beneath the front axis or bumper of the car, and a couple of range-estimator infrared sensors to cover the front and the sides of the car. Certain teams extended this setup with a camera for image-recognition, a second optosensor array and other methods. We sticked to the basic recommended sensor outfit, and this paper will not consider any other layouts.
+
+\subsection{Building a model}
+
+The first step in model based design is to create a model of the system, based on the functional description and known sensor loadout. To follow the line, the signals of the optical array must be processed and a control system must use this input to keep the car on the track. Let's define the following variables:
 
 \begin{center}
   \begin{tabular}{| c | p{0.8\linewidth} |}
 \hline
-    d & Pozícióhiba: Az első optikai szenzorsor középpontjának távolsága a vonaltól \\ \hline
-    $ \delta $ & Szöghiba: Az első optikai szenzorsorra merőleges egyenes (középvonal) és a pályavonal érintője által bezárt szög \\ \hline
-    $ \Phi $ & Kormányszög: A kerekek síkjainak a középvonallal bezárt szögeinek átlaga, Ackermann-kormányzás szerint \\
+    d & Position error: The shortest distance between the center of the front optical array and the center of the track \\ \hline
+    $ \delta $ & Angular error: The angle between the centerline of the body and the tangent of the track \\ \hline
+    $ \Phi $ & Steering angle: The effective steering angle, according to Ackermann-steering \\
     \hline
-    $ \kappa $ & A pálya pillanatnyi görbülete ($1/R$) \\ \hline
-    x & Vonalpozíció: az első optikai szenzorsor által érzékelt vonalak középpontjának előjeles távolsága a szenzorsoron a közepponttól mérve. \\ \hline
-    c & Vonalsebesség: x első deriváltja, a vonalpozíció mozgásának sebessége \\ \hline
-    v & Sebesség: Az autó pillanatnyi sebessége a középvonal mentén \\
+    $ \kappa $ & Current curvature of the track ($1/R$) \\ \hline
+    x & Line position: the position of the track line along the front optical array \\ \hline
+    c & Line speed: derivative of x, the change of the track line position \\ \hline
+    v & Car speed: The current speed of the car along the centerline \\
     \hline
   \end{tabular}
 \end{center}
 
+Illustrating the system can help to visualize the relationships:
 
-\section{Modell alapú fejlesztés}
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\linewidth]{img/cartop}
+    \caption{System model}
+    \label{fig:cartop}
+\end{figure}
 
-A modell alapú fejlesztés a probléma vizuális, rendszerszintű megközelítésén alapul. Segítségével a fejlesztés során a hangsúly a technológiák implementálásáról átkerül a problémák gyökereinek feltárására, és matematikai megoldások keresésére. A fejlesztés során csak kevés kapcsolat van a tényleges rendszerrel, mivel a megoldások helyességét az eszközről alkotott modell segítségével, szimulációval ellenőrizzük, illetve egy-egy mérföldkő elérésekor elég megbizonyosodni arról, hogy a rendszer valóban jól működik a valóságban is.
+\paragraph{Formulating the system model}
 
-Fontos kiemelni, hogy a megfelelő módszertanú fejlesztés eredmény nem csak a megoldás egy adott feladatra, hanem egy automata elkészítése, mely a feladat specifikációjának (józan kereteken belüli) ismert megváltozása esetén is módosítás nélkül elő tudja állítani a megoldást. Ennek a tulajdonságnak a hasznosságát nem lehet túlhangsúlyozni, mivel a tervezés indulásának pillanatában ritkán ismert pontosan az írányítani kívánt végleges rendszer, különösen gyors prototípustervezés során.
+the first step is to implement the system descriptor script. In the following we'll build a steering controller.
 
-Kijelenthető, hogy a modell alapú fejlesztés irányelveit megfelelően követve, szimulációs környezetek intenzív használatával rendkívül gyorsan lehet fejleszteni, a modellek kellően pontos ismerete (illetve az ismert modell pontosságának megfelelő becslése) esetén.
-
-\subsection{Szoftverkörnyezet} 
-
-A \textbf{RobonAUT 2014} versenyre az irányítást és állapotgépet \verb!MATLAB! és \verb!Simulink! segítségével implementáltuk. A választásunk azért esett a \verb!MathWorks! termékcsaládjára, mivel a \verb!Simulink! segítségével hatékonyan lehet szimulációs környezetben tesztelni, valamint támogatja az általános \verb!C! kód generálását. Ezt később közvetlenül felhasználhatjuk tetszőleges hardveren, mely a \verb!FreeRTOS! (vagy egyéb, hasonló) operációs rendszer futtatására képes.
-
-\subsection{Tervezési fázis}
-
-Az irányító rendszer 3 részre osztott logikai elrendezést követ. Először a \verb!MATLAB Script!-ek segítségével létrehozhatjuk azt az automatikát, ami a modell megfelelő paraméterei alapján generálja a szimulációs környezetet ill. paramétereit (rendszermodell), kiszámítja az irányító rendszert és annak működését befolyásoló tényezőket, valamint tesztelés céljából bemeneteket és környezeti hatásokat generálhatunk a szimulációs ellenőrzés céljából.
-
-\paragraph{Rendszermodell definiálása}
-
-Ez a folyamat általában az első lépés mindenféle rendszer vagy irányítás tervezésekor. Az összefüggéseket és kezdeti, becsült paramétereit megadva létrehozhatunk egy modellt, mellyel később dolgozhatunk. A továbbiakban a sebességfüggetlen vonalkövető szabályzón demonstráljuk a lépéseket.
-
-A dinamikai összefüggéseket~(\ref{eq:of1}, \ref{eq:of2}), és a rendszer paramétereit (L: autó tengelytávolsága) ismerve felírhatjuk az \textbf{A} (állapotátmeneti) és \textbf{B} (állapotfrissítési) mátrixát az egyensúlyi pont körül $(d = 0; \delta = 0; v = 1)$ linearizálva ~(\ref{eq:of3}).
+Knowing the dynamical system equations~(\ref{eq:of1}, \ref{eq:of2}), and parameters (L: wheelbase), we can formulate the \textbf{A} (system transition) and \textbf{B} (system update) matrices linearly approximated in the equilibrium $(d = 0; \delta = 0; v = 1)$ ~(\ref{eq:of3}).
 
 \begin{align} 
     \dot{d} &= sin(\delta + \Phi) \cdot v  \label{eq:of1} \\ 
@@ -109,7 +141,9 @@ A dinamikai összefüggéseket~(\ref{eq:of1}, \ref{eq:of2}), és a rendszer para
         \end{bmatrix}
      \end{align}
 
-A rendszermodell közvetlen megadása helyett szemléletileg jobb megoldást kapunk a MATLAB Symbolic toolbox használatával. A szimbolikus matematikát támogató szoftvercsomag segítségével automatikusan generálhatjuk a rendszer Jacobi-mátrixait, így leszűkíthetjük a program bemeneteit a rendszer paramétereire és nemlineáris összefüggéseire. További előny, hogy lényegesen több információt tartunk a kezünkben így, amivel például nemlineáris állapotbecslőt is készíthetünk.
+Instead of hard-coding the system matrices into the script, we can apply a different method that's closer to the model based approach, by using the \verb!MATLAB! \verb!Symbolic! \verb!Toolbox!. This package allows the automatic generation of the Jacobi-matrices of the system, so the inputs are narrowed to the system parameters and nonlinear dynamic equations. Furthermore, this way we can hold on to a lot more information that can later be used to generate a nonlinear state observer, Extended Kalman Filter[appendix], or Hybrid Linear Controller[appendix].
+
+[figure: partial prev figure extended with an above-top symbolic layer]
      
 \begin{minipage}{0.45\linewidth}
     \begin{align}
@@ -151,11 +185,10 @@ A rendszermodell közvetlen megadása helyett szemléletileg jobb megoldást kap
         [L_car, 0, 0, 0, 1]));
 \end{lstlisting}
 
-\paragraph{Szabályzó tervezése}
+\paragraph{Control system}
 
-A rendszer modelljének ismerete után megtervezhetjük a szabályzót. A szkript nem képezi a program szerves részét, ezért akár többféle szabályzót is kipróbálhatunk itt a PID-től az adaptív Fuzzy irányításig (és tovább), melyeknek a hatékonyságát összehasonlíthatjuk még a tervezési fázisban, így a legmegfelelőbb szabályzóval dolgozhatunk tovább.
-
-A rendszer állapotteres alakját ismerve az egyik legegyszerűbb megoldás a stabilizálás teljes állapot-visszacsatolásos szabályzó segítségével. Ehhez felvesszük a megfelelő \textbf{C} és \textbf{D} mátrixokat a szabályozni kívánt kimenet előállításához, majd az Ackermann-képlettel számított \textbf{K} pólusáthelyező mátrixon keresztül visszacsatoljuk a rendszert.
+Once an accurate system model is available, it's possible to formulate a controller. It's relatively easy to implement multiple controllers and compare their effectiveness on the simulated system to determine, which would fit the robot the best.
+Already knowing the state-space form of the system, a full-state feedback controller can be formulated quickly to stabilize the system. Using the Ackermann formula, we get the feedback matrix.
 
 \begin{lstlisting}
     % Definition of remaining state-space matrices
@@ -169,7 +202,7 @@ A rendszer állapotteres alakját ismerve az egyik legegyszerűbb megoldás a st
     sys_c = ss(A-B*K, B, C, D);
 \end{lstlisting}
 
-Az eredményeket leellenőrizve ábrázolhatjuk az eredetileg instabil rendszer válaszát, majd hátradőlve megbizonyosodhatunk a működéséről.
+If we check the results we can see that the system has been stabilized.
 
 \begin{figure}[!ht]
     \centering
@@ -178,18 +211,17 @@ Az eredményeket leellenőrizve ábrázolhatjuk az eredetileg instabil rendszer 
     \label{fig:plot2}
 \end{figure}
 
-\paragraph{Direkt és inverz mérési modell}
+\paragraph{Direct and inverse measurement models}
 
-A rendszer viselkedésének ismerete és egy erre létrehozott szabályzó a legritkább esetben elég a hatékony szabályzáshoz. Bizonyos állapotok csak korlátozottan, esetleg egyáltalán nem mérhetőek, így állapotmegfigyelővel kell előállítanunk. További probléma, hogy a legtöbb állapotot is csak közvetve tudjuk mérni, zajjal terhelve.
-A szenzorok érzékeléseinek előállása az állapotváltozók függvényében a \textbf{Direkt mérési modell}, illetve a megfigyelhető állapotok becslése a szenzorok jelei alapján az \textbf{Inverz mérési modell}.
+Unfortunately, a full-state feedback loop can rarely be realized directly, and the controller we have just created would not be able to control the actual system. Certain states can not be observed directly, and can only be estimated by a state observer. Simulating the sensor readings based on the state variables can be done with the \emph{Direct measurement model}, while in order to estimate the states based on the sensor reading we need the \emph{inverse measurement model}.
 
-A kormányszabályzás esetében az optikai szenzorsorok jelei egyszerűen szimulálhatóak a rendszer állapotait és geometriai elrendezését ismervén. Az optikai szenzor mentén a vonal pozícióját a szenzorsorra való vetítéssel kaphatjuk meg:
+Knowing the geometrical layout of the car, the expected sensor readings can be simulated using geometrical projection to the optosensor array:
 
 \begin{align}
     x = \frac{d}{\cos(\delta)}
 \end{align}
 
-A direkt modell és a rendszermodell ismeretével pedig előállítható az indirekt modell is:
+After the direct model has been determined, the inverse model can be formulated as well:
 
 \begin{align}
     \hat{d} &= x \cdot \cos(\delta) \\
@@ -197,16 +229,15 @@ A direkt modell és a rendszermodell ismeretével pedig előállítható az indi
     \hat{\delta} &= \arctan \left(\frac{c}{v}\right) - \Phi
 \end{align}
 
-A direkt modell általában csak a szimuláció részét képezi, de a szenzorok jeleinek hihetőségvizsgálatát is elvégezhetjük vele futási időben, amennyiben szenzorfúziófal állítjuk elő a becsült állapotokat.
-Az inverz modell az irányító rendszer legelső fokozata, a szimulációban ritkán indokolt a felhasználása.
+The direct model is usually part of the simulation only, however it's possible to proof-check the sensor readings during run-time. This can be especially useful, if we plan to produce the estimated states using sensorfusion. The inverse measurement model is always the first layer of the control loop, while it is rarely found in the simulated environment.
 
-Megjegyzendő, hogy $\delta$ közvetlenül is mérhető, ha két optikai szenzorsort helyezünk el az autón.
+Note: $\delta$ can be directly measured if the robot is equipped with multiple optosensor arrays.
 
-\subsection{Szimulációs környezet kiépítése}
+\subsection{Building the simulation environment}
 
-A megfelelő modell és szabályzó megtervezése után elkezdhetjük a szimulációs környezetet összeállítani. Egy egyszerűbb rendszer esetében akár közvetlenül implementálni lehetne a szabályzót C-ben, ám ha a rendszer összetetteb, jobban járunk ha a modell alapú fejlesztés elvét követjük. A RobonAUT versenyre az autó irányítórendszerének elkészítéséhez ezt az utat választottuk. A döntésben szerepet játszott a MATLAB kiváló integrált állapotgép és szimuláció támogatása, a technológiai kihívás, valamint a földrajzi távolság a tesztkörnyezet (Truggy) és a lusta fejlesztő lakhelye között.
+When a sufficient model and controller are available, it is time to build the simulation environment. In case of a simple system, at this point the controller could be implemented directly in \verb!C!, but in case of a complex system it is better practice to go through with the model based design.
 
-\paragraph{Felépítés}
+
 
 A rendszert két fő logikai részre bonthatjuk, az \textbf{Irányító rendszerre} és a \textbf{Szimulátorra}, illetve egy harmadik blokk interfészt biztosít e kettő között. A MATLAB (így a Simulink is) gyengén típusos nyelv, de lehetőség van a típusok erős állítására is. Ez beágyazott rendszereknél különösen hasznos, mivel a MATLAB egészen meglepő típusokat tud előállítani magának, ami nem előnyös sem a futási sebesség, sem a kézbentarthatóság szempontjából, különösen ha fixpontos számábrázolással szeretnénk dolgozni.
 
@@ -226,7 +257,7 @@ A nemlineáris rendszerek felépítéséhez kiváló segédletet nyújt a Szabá
 
 Ne feledjük, a szimulátor kimenete nem csupán az állapot, hanem a direkt mérési modell által előállított szimulált szenzorjelek, melyeket mesterségesen zajjal is terhelhetünk, hogy eggyel kevesebb meglepetés érjen a tényleges teszteléskor.
 
-\subsection{Irányító rendszer implementálása}
+\subsection{Implementation of a complex control system}
 
 Az irányítás tetszőlegesen bonyolult lehet, a RobonAUT-hoz készült megoldás 4 fő kritikus (működéshez elengedhetetlen) részre bontható:
 
@@ -246,7 +277,7 @@ A szabályzó a szkript alapján számított paraméterek alapján implementálh
 
 A magas szintű irányítás felel a szabályzás és állapotgép alapján történő vezérlés közötti kapcsolásért és a szabályzó bemeneti jelének kiválasztásáért, az aktuális állapot szerint. Ezenkívül referenciajeleket határozhat meg a sebességnek és a kormányszabályzónak.
 
-\subsection{MATLAB Coder beállítása}
+\subsection{Preparing MATLAB Coder for code generation}
 
 Az elkészült szabályzóból \verb!C! (vagy \verb!C++!, \verb!Verilog! és \verb!PLC!) kódot generálhatunk, melyet beágyazhatunk a rendszerbe. A generált kód egyfajta statikus osztályként működik, vannak belső tárolói és tagfüggvényei, de nem szükséges a példányosítása.
 
@@ -278,8 +309,6 @@ A kezelhetőséget javítja, ha a \textbf{Code placement}-ben a \textbf{Code pac
     \item \textbf{MATLAB Command Line} $\rightarrow$ \textbf{mex -setup}
 
 \end{itemize}
-
-\subsection{Kódgenerálás}
 
 A megfelelő beállítás után a Simulink modellben keressük meg azt a blokkot, melyből kódot szeretnénk generálni. Egy nagy rendszerben akár több részben is lehet kódot generálni, pl. kapcsolható működés, vagy eltérő mintavételi idő esetén hasznos. Jelen esetben az Irányító rendszer blokkját szeretnénk felhasználni, melynek bemenete a szenzoroktól kapott közvetlen jel, kimenete pedig a szervójel. A blokkon jobb kattintás, majd \textbf{C/C++ Code} $\rightarrow$ \textbf{Build This Subsystem} (Régebbi MATLAB verziókban MATLAB Coder, illetve Real Time Workshop (RTW) menüpontokat kell keresni). A generált fileok a \verb!MATLAB Current Working Folder!-be kerülnek, nem a modell mappájába.
 

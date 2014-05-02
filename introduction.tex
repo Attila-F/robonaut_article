@@ -1,8 +1,14 @@
 \section{Introduction}
 \label{sec:Introduction}
 
+% introduction
+
 The RobonAUT is an annual contest of the Department of Automation and Applied Informatics at the Budapest University of Technology and Economics. Each year many teams, consisting three students each design and build autonomous model cars that battle on an obstacle course, and race each other on a race track. The robots must be completely autonomous, lack any remote control and any kind of external intervention during the race is punished. The team whose car gathers the most points wins the contest in the end\cite{rules}.
 
-Even with such simple robots, there's enormous amounts of work, including the design of the system hardware carrying the sensor array, the software capable of recognizing and handling obstacles, a client software to ensure a safe testing environment and an efficient control system tasked to keep the the car "in line" while sweeping through the racetrack. As the fame of the competition grows, the expectations towards the cars heighten and teams become more ferocious to win. This all causes the pressure on the students to enlarge, while they have to hold their own in other challenges throughout the semester. For these reasons, we looked beyond the methods of classic software development, and employed a different methodology used often in \textbf{Rapid Prototyping}, called the \textbf{Model Based Design}.
+% Motivation
 
-In the first part of the article we'll demonstrate how the focus of the software development has shifted from the actual coding to a more visual and mathematical representation of the system, and how to harness it's traits to \emph{quickly} develop a \emph{reliable} system. In the second part we'll describe how to use the \verb!MATLAB! \verb!Coder! auto code generation tool and integrate the source with (the?) \verb!FreeRTOS! (hard real-time operating system?) and deploy it on the target hardware, the \verb!STM32F4-Discovery! developer board.
+Even with such simple robots, there is enormous amounts of work, including the design of the system hardware carrying the sensor array, the software capable of recognizing and handling obstacles, a client software to ensure a safe testing environment and an efficient control system tasked to keep the the car "in line" while sweeping through the racetrack. As the fame of the competition grows, the expectations towards the cars heighten and teams become more ferocious to win. This all causes the pressure on the students to enlarge, while they have to hold their own in other challenges throughout the semester.
+
+% Problem statement
+
+For these reasons, we decided to look beyond the boundaries of classic software development, and found a different approach often used together with \emph{Rapid Prototyping} technologies, called the \emph{Model Based Design}. 
