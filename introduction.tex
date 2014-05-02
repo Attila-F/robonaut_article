@@ -1,14 +1,22 @@
 \section{Introduction}
 \label{sec:Introduction}
 
-% introduction
+% What is the problem?
 
 The RobonAUT is an annual contest of the Department of Automation and Applied Informatics at the Budapest University of Technology and Economics. Each year many teams, consisting three students each design and build autonomous model cars that battle on an obstacle course, and race each other on a race track. The robots must be completely autonomous, lack any remote control and any kind of external intervention during the race is punished. The team whose car gathers the most points wins the contest in the end\cite{rules}.
 
-% Motivation
+% Motivation, why is it interesting and important?
 
 Even with such simple robots, there is enormous amounts of work, including the design of the system hardware carrying the sensor array, the software capable of recognizing and handling obstacles, a client software to ensure a safe testing environment and an efficient control system tasked to keep the the car "in line" while sweeping through the racetrack. As the fame of the competition grows, the expectations towards the cars heighten and teams become more ferocious to win. This all causes the pressure on the students to enlarge, while they have to hold their own in other challenges throughout the semester.
 
-% Problem statement
+% Problem statement, why is it hard? (E.g., why do naive approaches fail?)?
 
-For these reasons, we decided to look beyond the boundaries of classic software development, and found a different approach often used together with \emph{Rapid Prototyping} technologies, called the \emph{Model Based Design}. 
+Often a low-level approach to the problem pays off in smaller projects like this. Although good ideas people have used successfully in the past must not be forgotten, innovation is crucial. For these reasons, we decided to look beyond the boundaries of classic software development, to find a solution that enables us to concentrate on the important aspects, instead of being lost in the thousand lines of source code. However, utilizing a complex technology, and integrating several design softwares and solutions is no easy task, and might present more problems than solve, because the available time for development is very limited.
+
+% Why hasn't it been solved before? (Or, what's wrong with previous proposed solutions? How does mine differ?)
+
+Although these tools can greatly enhance the productivity of the developers, Model Based Design is still neglected in the industry for its complexity, and the high price of design softwares even further discourage its use. Against all these odds though, it is prevailing, but was never considered a way to deal with small projects before.
+
+% What are the key components of my approach and results? Also include any specific limitations.
+
+We wanted to demonstrate, that a scaled-down approach is possible using such tools. Because the project is relatively small, the functional software and the operating system responsible for the core services can be integrated manually, but most of the advantages of the methodology can be retained. We used MATLAB-Simulink to create a \emph{Rapid Prototyping} environment, where using a simulated model of the system, conductive software development could be started weeks before an actual hardware prototype. Using automated code-generation for the target hardware, through a predefined interface the core services can be augmented with functionalities, designed and verified in a swift visual model-based environment to overcome the challenges the contest presents. The development cycle became shorter, and the reliability of the resulting functional system is guaranteed by the code generation software.
