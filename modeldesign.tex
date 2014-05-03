@@ -13,9 +13,22 @@ Explain what it lacks. (special hardware requirements for example)
 
 For the \textbf{RobonAUT 2014} contest, we used \verb!MATLAB! and \verb!Simulink! to implement the control system and the state machine. We chose the \verb!MathWorks! product family, because \verb!Simulink! has extensive support for model and simulation based development, and supports the generation of generic \verb!C! source code that can be later used on any hardware that is capable of running \verb!FreeRTOS! or any other hard real-time operating systems.
 
-A typical system designed in \verb!MATLAB! can be divided to three parts. There's a \verb!MATLAB! \verb!Script! that defines the system model and computes the simulator and controller parameters. Based on these parameters we can build the simulator and control software in \verb!Simulink! that interact with each other. If the system response in the simulation is correct, the controller is ready for code generation, and field-testing.
+Figure \ref{fig:architecture} depicts the system architecture and stages of deployment. A typical system developed in \verb!MATLAB! can be divided to the following objects.
 
-[figure about these relations: matlab script on top, simulator and controller equal, controller goes below to hardware with code generation, ]
+\begin{enumerate}
+\item A \verb!MATLAB! \verb!Script! that defines the system model and computes the simulator and controller parameters.
+\item Based on these parameters we can build the simulator and control software in \verb!Simulink! that interact with each other.
+\item If the system response in the simulation is correct, the controller is ready for code generation, and field-testing.
+\item The generated source code is invoked by the core operating system, the \verb!FreeRTOS! in this case
+\item All communication with the hardware in implemented by the Core.
+\end{enumerate}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\linewidth]{img/architecture}
+    \caption{System architecture}
+    \label{fig:architecture}
+\end{figure}
 
 % Contributions
 \section{Model based design of the high level software}
@@ -24,23 +37,15 @@ As described earlier, the Model based design is based on solving the problems in
 
 In addition, with the use of the correct methods the result is not only the solution for the problem, but an automation that can formulate this solution for a given model. This means, that even if significant changes occur in the specifications, only minimal amount of modification is required to the code that formulates the software. This advantage can't be over emphasized, because the final specifications of the system are rarely known, especially in prototype development.
 
-In conclusion, we claim that the using model based design in robotic software development results in a quick and efficient work.
-[lot of refinements required in this part]
-
-% Case study starts here
-\subsection{Case study}
-
-
-
 \subsection{Functional description}
 
-During the race, the track is marked by a dark line on light ground. The car follows this line that guides it through certain checkpoints. Between checkpoints, there are obstacles that need to be passed in a specific way. Each obstacle is marked in a unique way that allows the car to unambiguously determine, based on simple on-board sensors, which function it has to execute in the current segment.
+During the race, the track is marked by a dark line on light ground. The car follows this line that guides it through certain checkpoints. Between checkpoints, there are obstacles that need to be passed in a specific way. Each obstacle is marked in a unique manner that allows the car to unambiguously determine, based on simple on-board sensors, which function it has to execute in the current segment.
 
-The recommended sensor loadout\cite[sensors] is a number of optoelectronic sensors beneath the front axis or bumper of the car, and a couple of range-estimator infrared sensors to cover the front and the sides of the car. Certain teams extended this setup with a camera for image-recognition, a second optosensor array and other methods. We sticked to the basic recommended sensor outfit, and this paper will not consider any other layouts.
+The recommended sensor loadout\cite[sensors] is a number of optoelectronic sensors beneath the front axis or bumper of the car, and a couple of infrared proximity sensors to cover the front and the two sides of the car. Certain teams extended this setup with a camera for image-recognition, a second optosensor array and other methods. We sticked to the basic recommended sensor outfit, and this paper will not consider any other layouts.
 
 \subsection{Building a model}
 
-The first step in model based design is to create a model of the system, based on the functional description and known sensor loadout. To follow the line, the signals of the optical array must be processed and a control system must use this input to keep the car on the track. Let's define the following variables:
+The first step in model based design is to create a model of the system, based on the functional description and known sensor loadout. To follow the line, the signals of the optical array must be processed and a control system must use this input to keep the car on the track. Let's define the following state variables:
 
 \begin{center}
   \begin{tabular}{| c | p{0.8\linewidth} |}
@@ -141,7 +146,7 @@ Knowing the dynamical system equations~(\ref{eq:of1}, \ref{eq:of2}), and paramet
         \end{bmatrix}
      \end{align}
 
-Instead of hard-coding the system matrices into the script, we can apply a different method that's closer to the model based approach, by using the \verb!MATLAB! \verb!Symbolic! \verb!Toolbox!. This package allows the automatic generation of the Jacobi-matrices of the system, so the inputs are narrowed to the system parameters and nonlinear dynamic equations. Furthermore, this way we can hold on to a lot more information that can later be used to generate a nonlinear state observer, Extended Kalman Filter[appendix], or Hybrid Linear Controller[appendix].
+Instead of hard-coding the system matrices into the script, we can apply a different method that is closer to the model based approach, by using the \verb!MATLAB! \verb!Symbolic! \verb!Toolbox!. This package allows the automatic generation of the Jacobi-matrices of the system, so the inputs are narrowed down to the system parameters and nonlinear dynamic equations. Furthermore, this way we can hold on to a lot more information that can later be used to generate a nonlinear state observer, Extended Kalman Filter[appendix?], or Hybrid Linear Controller[appendix?].
 
 [figure: partial prev figure extended with an above-top symbolic layer]
      
