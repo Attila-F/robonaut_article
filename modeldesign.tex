@@ -1,17 +1,21 @@
-\section{Related work}
+\section{Alternative development methods}
 
-\subsection{Classic software design approach}
-Explain what it lacks
+\section{Classic software design approach}
 
-C does not do any run time or compile time bounds checking in arrays. At run time the code will just access or mangle whatever memory it happens to hit and crash or misbehave in some unpredictable way thereafter. "Professional programmer's language." - Nick Parlante\cite{clanguage}
+In every software development project, a visual sketch of the system is often created in order to aid the design process, and act as a visual guide in the documentation. However, implementing whatever design that was created earlier is not always trivial. The primary and most widespread embedded programming language, the \verb!C! has been designed as a "Professional Programmers Language", and it supports only very basic syntax checks, but nothing ensures that the program will behave as the programmer intended. The designer must choose to take the risks of unexpected errors, or a thorough testing must be conducted in order to ensure the correct and reliable functioning of the system. While the testing of simple systems can be finished quickly, many dangers surface when the the same method is used in a large multi-developer project. Most of the industry have responded to this in scaling up the work force that gave birth to a number of safety standards, internal regulations and coding guidelines\cite{misra}, and led to a huge amount of overhead in human labour on each software development project.
 
-\subsection{Other model based design approaches}
-In 2014, another competing team has turned towards model based design [cite, Need for PID]. Blabla about their results.
-Explain what it lacks. (special hardware requirements for example)
+\subsection{Model-Driven Engineering}
 
-\subsection{Background} 
 
-For the \textbf{RobonAUT 2014} contest, we used \verb!MATLAB! and \verb!Simulink! to implement the control system and the state machine. We chose the \verb!MathWorks! product family, because \verb!Simulink! has extensive support for model and simulation based development, and supports the generation of generic \verb!C! source code that can be later used on any hardware that is capable of running \verb!FreeRTOS! or any other hard real-time operating systems.
+
+\subsection{Background}
+
+The authors have had separate knowledges
+
+% Contributions
+\section{Model based design of the high level software}
+
+For the \textbf{RobonAUT 2014} contest, we used \verb!MATLAB! and \verb!Simulink! to implement the control system and the state machine. We chose the \verb!MathWorks! product family, because \verb!Simulink! has extensive support for model and simulation based development, and allows the generation of generic \verb!C! source code that can be later used on any hardware that is capable of running \verb!FreeRTOS! or any other hard real-time operating systems.
 
 Figure \ref{fig:architecture} depicts the system architecture and stages of deployment. A typical system developed in \verb!MATLAB! can be divided to the following objects.
 
@@ -30,8 +34,6 @@ Figure \ref{fig:architecture} depicts the system architecture and stages of depl
     \label{fig:architecture}
 \end{figure}
 
-% Contributions
-\section{Model based design of the high level software}
 
 As described earlier, the Model based design is based on solving the problems in a more visual environment. During the development, there's  limited connection between the designed software and the real hardware, as many of the solutions can be verified using the simulated model of the system.
 
@@ -146,9 +148,16 @@ Knowing the dynamical system equations~(\ref{eq:of1}, \ref{eq:of2}), and paramet
         \end{bmatrix}
      \end{align}
 
-Instead of hard-coding the system matrices into the script, we can apply a different method that is closer to the model based approach, by using the \verb!MATLAB! \verb!Symbolic! \verb!Toolbox!. This package allows the automatic generation of the Jacobi-matrices of the system, so the inputs are narrowed down to the system parameters and nonlinear dynamic equations. Furthermore, this way we can hold on to a lot more information that can later be used to generate a nonlinear state observer, Extended Kalman Filter[appendix?], or Hybrid Linear Controller[appendix?].
+Instead of hard-coding the system matrices into the script, we can apply a different method that is closer to the model based approach, by using the \verb!MATLAB! \verb!Symbolic! \verb!Toolbox!. This package allows the automatic generation of the Jacobi-matrices of the system, so the inputs are narrowed down to the system parameters and nonlinear dynamic equations.
 
-[figure: partial prev figure extended with an above-top symbolic layer]
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.7\linewidth]{img/symbolic}
+    \caption{Symbolic design}
+    \label{fig:symbolic}
+\end{figure}
+
+Furthermore, this way we can hold on to a lot more information that can later be used to generate a nonlinear state observer, Extended Kalman Filter[appendix?], or Hybrid Linear Controller[appendix?].
      
 \begin{minipage}{0.45\linewidth}
     \begin{align}
