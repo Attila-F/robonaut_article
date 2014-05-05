@@ -16,7 +16,7 @@ Although this all sounds very good, it has its own limitations as well. Model ba
 
 For the \textbf{RobonAUT 2014} contest, we used \verb!MATLAB! and \verb!Simulink! to implement the control system and the state machine. We chose the \verb!MathWorks! product family, because \verb!Simulink! has extensive support for model and simulation based development, and allows the generation of generic \verb!C! source code that can be later used on any hardware that is capable of running \verb!FreeRTOS! or any other hard real-time operating systems.
 
-Figure \ref{fig:architecture} depicts the system architecture and stages of deployment. A typical system developed in \verb!MATLAB! can be divided to the following objects.
+Figure \ref{fig:architecture} depicts the system connections and stages of deployment. A typical system designed in \verb!MATLAB! can be divided to the following modules.
 
 \begin{enumerate}
 \item A \verb!MATLAB! \verb!Script! that defines the system model and computes the simulator and controller parameters.
@@ -29,7 +29,7 @@ Figure \ref{fig:architecture} depicts the system architecture and stages of depl
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=\linewidth]{img/architecture}
-    \caption{System architecture}
+    \caption{Connections and dependencies}
     \label{fig:architecture}
 \end{figure}
 
@@ -37,7 +37,7 @@ Figure \ref{fig:architecture} depicts the system architecture and stages of depl
 
 During the race, the track is marked by a dark line on light ground. The car follows this line that guides it through certain checkpoints. Between checkpoints, there are obstacles that need to be passed in a specific way. Each obstacle is marked in a unique manner that allows the car to unambiguously determine, based on simple on-board sensors, which function it has to execute in the current segment.
 
-The recommended sensor loadout\cite[sensors] is a number of optoelectronic sensors beneath the front axis or bumper of the car, and a couple of infrared proximity sensors to cover the front and the two sides of the car. Certain teams extended this setup with a camera for image-recognition, a second optosensor array and other methods. We sticked to the basic recommended sensor outfit, and this paper will not consider any other layouts.
+The recommended sensor outfit\cite[sensors] is a number of optoelectronic sensors beneath the front axis or bumper of the car, and a couple of infrared proximity sensors to cover the front and the two sides of the car. Certain teams extended this setup with a camera for image-recognition, a second optosensor array and other methods. We sticked to the basic recommended sensor outfit, and this paper will not consider any other layouts.
 
 \subsection{Building a model}
 
@@ -143,14 +143,6 @@ Knowing the dynamical system equations~(\ref{eq:of1}, \ref{eq:of2}), and paramet
      \end{align}
 
 Instead of hard-coding the system matrices into the script, we can apply a different method that is closer to the model based approach, by using the \verb!MATLAB! \verb!Symbolic! \verb!Toolbox!. This package allows the automatic generation of the Jacobi-matrices of the system, so the inputs are narrowed down to the system parameters and nonlinear dynamic equations.
-
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[width=0.7\linewidth]{img/symbolic}
-    \caption{Symbolic design}
-    \label{fig:symbolic}
-\end{figure}
-
 Furthermore, this way we can hold on to a lot more information that can later be used to generate a nonlinear state observer, Extended Kalman Filter[appendix?], or Hybrid Linear Controller[appendix?].
      
 \begin{minipage}{0.45\linewidth}
@@ -260,34 +252,44 @@ The \textbf{Dynamic nonlinear system update matrix A} block contains a simple MA
 
 \subsection{Implementation of the control system}
 
-Az irányítás tetszőlegesen bonyolult lehet, a RobonAUT-hoz készült megoldás 4 fő kritikus (működéshez elengedhetetlen) részre bontható:
+To describe the implementation of the entire control system is out of the scope of this paper, however, key aspects of the software will be highlighted. The visual development of the software requires a different way of thinking than traditional source code writing. Therefore, we encourage the reader to design his or her own control system based on the supplied information and examples, in order to get a first hand experience in model based design.
 
-\paragraph{Inverz mérési modell}
+\paragraph{Inverse measurement model}
 
-A korábban vázolt inverz mérési modell megvalósítása, célja a \textbf{visszacsatolt, mérhető állapotok} előállítása a szenzorok jelei alapján, tehát \textbf{priori információk nélkül}. Mivel a verseny során többféle jelre kellett szabályozni (vonaldetektálás, bal/jobb éldetektálás, bal/jobb távolságérzékelő szenzor jele), ezekre mind létre kell hozni az inverz mérési modellt, majd a megfelelő visszacsatolt állapotot adni tovább a jelfeldolgozónak.
+The implementation of the inverse measurement model described earlier. During the race, multiple signals provide information about the track (optosensor array, side proximity sensors), therefore an inverse measurement model must be derived and realized for each of them, to provide the system states for the controller.
 
-\paragraph{Jelfeldolgozó és állapotbecslő}
+\paragraph{Signal processing and state estimation}
 
-Az inverz mérési modell által előállított \textbf{visszacsatolt állapotokat} dolgozza fel \textbf{priori információk} segítségével. Ez a mi esetünkben egy Kálmán-szűrőt jelentett, ahol a mérési jel a visszacsatolt állapot, a priori információ pedig a rendszer modellje. Bár a Kálmán-szűrő támogatja az inverz mérési modell közvetlen integrálását a szűrőbe, ezt a megoldást nem találtam célszerűnek, mivel a szenzorsor jelvektorából a vonal pozíciójele nem állítható elő zárt mátrixos alakban, valamint többféle jelentősen eltérő lehetséges bemenet között kell kapcsolni.
+Although basic processing might be required to enhance the raw signal quality before the inverse measurement model, serious processing should be implemented after. If the Jacobian matrices are known, they can be used to create an Extended Kalman Filter (EKF) that serves a dual purpose as a powerful filter and statistically optimal state estimator.
 
-\paragraph{Szabályzó}
+\paragraph{Controller}
 
-A szabályzó a szkript alapján számított paraméterek alapján implementálható, ez függ a választott szabályzó típusától és a tervezés módjától.
+Using model based design, several controller implementations can be evaluated quickly by testing and comparing them using the dynamic simulation of the model. A word of caution though: an inferior simulator can negatively influence the results of the comparison. Always introduce the major physical limitations to the system, for example the nonzero transition time of the steering servo between states.
 
-\paragraph{Magas szintű irányítás, állapotgép}
+\paragraph{High level control, state machine}
 
-A magas szintű irányítás felel a szabályzás és állapotgép alapján történő vezérlés közötti kapcsolásért és a szabályzó bemeneti jelének kiválasztásáért, az aktuális állapot szerint. Ezenkívül referenciajeleket határozhat meg a sebességnek és a kormányszabályzónak.
+\verb!MATLAB! has an extension called \verb!Stateflow! dedicated to the development of state machines. It supports a wide range of features including subcharts, temporal logic and code generation of course, making it a very powerful tool. Figure \ref{fig:stateflow} shows the top layer of the state machine implementation of the obstacle course in \verb!Stateflow!. It is primarily used to detect certain sections during the race based on the external signals, and take over the control of the car at some obstacles to perform an action like slalom or automated parking.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\linewidth]{img/stateflow}
+    \centering
+    \caption{State machine diagram of the obstacle course}
+    \label{fig:stateflow}
+\end{figure}
 
 \subsection{Preparing MATLAB Coder for code generation}
 
-Az elkészült szabályzóból \verb!C! (vagy \verb!C++!, \verb!Verilog! és \verb!PLC!) kódot generálhatunk, melyet beágyazhatunk a rendszerbe. A generált kód egyfajta statikus osztályként működik, vannak belső tárolói és tagfüggvényei, de nem szükséges a példányosítása.
+If the controller is implemented and tested, it's ready for \verb!C! code generation (or \verb!C++!, \verb!Verilog! és \verb!PLC!). It acts as some sort of a static object, as it has its inner states and member functions, but does not need to be instantiated.
+
+The first step is to set up the solver. Open \emph{Simulation/Configuration parameters} (Ctrl + E) and set the \emph{type} to \emph{Fixed-step} and the \emph{Solver} to \emph{discrete}, in order to avoid having continuous-states in the controller. Next, set the 
 
 Az első lépés a kódgenerálás előkészítéséhez a megfelelő \textbf{solver} beálítása. Ezt a \textbf{Simulation/Configuration parameters... (Ctrl + E)} menüpontban tehetjük meg a \textbf{Solver} menüpontban. A típust Fixed-step-re kell állítani, a solvert pedig discrete-re, hogy ne legyenek folytonos állapotok a modellünkben. Ezután ne felejtsük el megadni a mintavételi idejét a rendszernek, másodpercben.
 Ezt a beállítást célszerű már a modell létrehozásakor, a legelső lépésként elvégezni, ugyanis egy folytonos környezetben épített modell nem feltétlenül fog működni diszkrét solverrel! (Alternatív módon \textbf{Atomic Subsystem} blokkba helyezhetjük a fordítani kívánt rendszert, amennyiben mindenképpen folytonos idejű szimulátorral szeretnénk dolgozni. Ekkor nem szükséges a solver módosítása, viszont gondoskodni kell a mintavételi idő váltásról.)
 
 A tényleges kódgeneráláshoz szükség van egy MATLAB által támogatott \verb!C/C++! compilerre is. A teljes lista megtekinthető a MathWorks weboldalán.\footnote{http://www.mathworks.com/support/compilers/}
 
-\paragraph{Target beállítása}
+\paragraph{Target settings}
 
 A kódgenerálásra millióféle különböző beállítás létezik, ezek közül az STM32F4-Discovery kártyához tartozót mutatjuk be, mivel ez volt a célplatform a RobonAUT verseny során.
 

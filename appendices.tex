@@ -1,4 +1,5 @@
-\section{Generating the Jacobi matrix}
+\section{Generating the Jacobi matrices}
+\label{app:jacobi}
 \begin{lstlisting}
     % Definition of system equations
     d_dot = sin(Delta + Phi) * v;
@@ -19,6 +20,7 @@
 \end{lstlisting}
 
 \section{Linear full state feedback controller design}
+\label{app:controller}
 \begin{lstlisting}
     % Definition of remaining state-space matrices
     C = [1 0];
@@ -29,17 +31,4 @@
     P = [-3 -3];
     K = acker(A,B,P);
     sys_c = ss(A-B*K, B, C, D);
-\end{lstlisting}
-
-\section{Call sw}
-\lstset{escapechar=@,style=customc}
-\begin{lstlisting}[frame=single]
-	/* Pass inputs */
-	Controller_U.Position = line_position;
-
-	/* Update model */
-	Controller_step();
-
-	/* Receive outputs */
-	servo_position = Controller_Y.Servo;
 \end{lstlisting}
