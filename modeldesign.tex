@@ -1,19 +1,18 @@
-\section{Alternative development methods}
+\section{Development methods}
 
-\section{Classic software design approach}
+\paragraph{Classic software design approach}
 
 In every software development project, a visual sketch of the system is often created in order to aid the design process, and act as a visual guide in the documentation. However, implementing whatever design that was created earlier is not always trivial. The primary and most widespread embedded programming language, the \verb!C! has been designed as a "Professional Programmers Language", and it supports only very basic syntax checks, but nothing ensures that the program will behave as the programmer intended. The designer must choose to take the risks of unexpected errors, or a thorough testing must be conducted in order to ensure the correct and reliable functioning of the system. While the testing of simple systems can be finished quickly, many dangers surface when the the same method is used in a large multi-developer project. Most of the industry have responded to this in scaling up the work force that gave birth to a number of safety standards, internal regulations and coding guidelines\cite{misra}, and led to a huge amount of overhead in human labour on each software development project.
 
-\subsection{Model-Driven Engineering}
+\paragraph{Model Based Design}
 
+As described earlier, the Model based design is based on solving the problems in a more visual environment. During the development, there is  limited connection between the designed software and the real hardware, as many of the solutions can be verified using the simulated model of the system.
+In addition, with the use of the correct methods the result is not only the solution for the problem, but an automation that can generate this solution for a given model. This means, that even if significant changes occur in the specifications, only minimal amount of modification is required to the code that formulates the software. This advantage can not be over emphasized, because the final specifications of the system are rarely known, especially in prototype development.
+Although this all sounds very good, it has its own limitations as well. Model based design relies on complex tools to do most of the work, and their operation and integration into the existing project is difficult. Often the usefulness is limited by the lack of hardware-support as well.
 
-
-\subsection{Background}
-
-The authors have had separate knowledges
+\section{Development of the software}
 
 % Contributions
-\section{Model based design of the high level software}
 
 For the \textbf{RobonAUT 2014} contest, we used \verb!MATLAB! and \verb!Simulink! to implement the control system and the state machine. We chose the \verb!MathWorks! product family, because \verb!Simulink! has extensive support for model and simulation based development, and allows the generation of generic \verb!C! source code that can be later used on any hardware that is capable of running \verb!FreeRTOS! or any other hard real-time operating systems.
 
@@ -33,11 +32,6 @@ Figure \ref{fig:architecture} depicts the system architecture and stages of depl
     \caption{System architecture}
     \label{fig:architecture}
 \end{figure}
-
-
-As described earlier, the Model based design is based on solving the problems in a more visual environment. During the development, there's  limited connection between the designed software and the real hardware, as many of the solutions can be verified using the simulated model of the system.
-
-In addition, with the use of the correct methods the result is not only the solution for the problem, but an automation that can formulate this solution for a given model. This means, that even if significant changes occur in the specifications, only minimal amount of modification is required to the code that formulates the software. This advantage can't be over emphasized, because the final specifications of the system are rarely known, especially in prototype development.
 
 \subsection{Functional description}
 
@@ -180,41 +174,10 @@ Furthermore, this way we can hold on to a lot more information that can later be
      \end{align}
 \end{minipage}
 
-\begin{lstlisting}
-    % Definition of system equations
-    d_dot = sin(Delta + Phi) * v;
-    Delta_dot = v/L * tan(Phi) + Kappa;
-    
-    % Computing the Jacobi matrices
-    A_sym = [0      diff(d_dot, Delta);
-             0      0                ];
-       
-    B_sym = [diff(d_dot, Phi);
-             diff(Delta_dot, Phi)];
-    
-    % Substitution of approximation points
-    A = double(subs(A_sym, [L, d, Delta, Phi, v],...
-        [L_car, 0, 0, 0, 1]));
-    B = double(subs(B_sym, [L, d, Delta, Phi, v],...
-        [L_car, 0, 0, 0, 1]));
-\end{lstlisting}
-
 \paragraph{Control system}
 
 Once an accurate system model is available, it's possible to formulate a controller. It's relatively easy to implement multiple controllers and compare their effectiveness on the simulated system to determine, which would fit the robot the best.
 Already knowing the state-space form of the system, a full-state feedback controller can be formulated quickly to stabilize the system. Using the Ackermann formula, we get the feedback matrix.
-
-\begin{lstlisting}
-    % Definition of remaining state-space matrices
-    C = [1 0];
-    D = 0;
-    sys = ss(A,B,C,D);
-    
-    % Controller design
-    P = [-3 -3];
-    K = acker(A,B,P);
-    sys_c = ss(A-B*K, B, C, D);
-\end{lstlisting}
 
 If we check the results we can see that the system has been stabilized.
 
@@ -243,22 +206,46 @@ After the direct model has been determined, the inverse model can be formulated 
     \hat{\delta} &= \arctan \left(\frac{c}{v}\right) - \Phi
 \end{align}
 
-The direct model is usually part of the simulation only, however it's possible to proof-check the sensor readings during run-time. This can be especially useful, if we plan to produce the estimated states using sensorfusion. The inverse measurement model is always the first layer of the control loop, while it is rarely found in the simulated environment.
+The direct model is usually part of the simulation only, however it's possible to proof-check the sensor readings during run-time. This can be especially useful, if we plan to produce the estimated states using sensor fusion. The inverse measurement model is always the first layer of the control loop, while it is rarely found in the simulated environment.
 
 Note: $\delta$ can be directly measured if the robot is equipped with multiple optosensor arrays.
 
 \subsection{Building the simulation environment}
 
-When a sufficient model and controller are available, it is time to build the simulation environment. In case of a simple system, at this point the controller could be implemented directly in \verb!C!, but in case of a complex system it is better practice to go through with the model based design.
+When a sufficient model and controller are available, it is time to build the simulation environment. In case of a simple system, at this point the controller could be implemented directly in \verb!C!, but if the system is more complex, it is better practice to go through with the model based design. To test the behavior of the system, the controller and the simulator must be implemented in \verb!Simulink! as well. Figure \ref{fig:simenvironment} shows the model based development environment. Because the Controller model and the Controller source code are identical, the key is to design a simulator that is deceptively similar to the real system, from the controller's point of view. This is the reason why Direct and Inverse Measurement (msment) models must be designed.
 
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\linewidth]{img/simenvironment}
+    \centering
+    \caption{Simulation environment and analogy of deployment}
+    \label{fig:simenvironment}
+\end{figure}
 
+Although \verb!MATLAB! is a dynamic typing language, it is good practice to fix the data type of the signals, especially if the software is developed for an embedded system. The default signal type is \emph{Double}, but it should be overridden to \emph{Single}, or \emph{Integer} to spare the limited processing capabilities of the system.
 
-A rendszert két fő logikai részre bonthatjuk, az \textbf{Irányító rendszerre} és a \textbf{Szimulátorra}, illetve egy harmadik blokk interfészt biztosít e kettő között. A MATLAB (így a Simulink is) gyengén típusos nyelv, de lehetőség van a típusok erős állítására is. Ez beágyazott rendszereknél különösen hasznos, mivel a MATLAB egészen meglepő típusokat tud előállítani magának, ami nem előnyös sem a futási sebesség, sem a kézbentarthatóság szempontjából, különösen ha fixpontos számábrázolással szeretnénk dolgozni.
+\paragraph{Simulator}
 
-\paragraph{Szimulátor}
+The controller that was designed earlier is based on the linear approximation of the system, but the simulator must always represent the full nonlinear system, or the whole model based design effort is pointless. The system can be created with basic \verb!Simulink! blocks. However, exploiting the technique described earlier to generate the Jacobi matrices of the system, we can use this directly to generate a full representation.
 
-A megállapított rendszermodell alapján felépíthetjük a szimulátort. Hiába terveztük a szabályzót a linearizált modellhez, a szimulátornak mindig a legelső lépésben meghatározott, gyakran nemlineáris összefüggések alapján kell felépülnie, különben csak magunkat csapjuk be a hibás szimulációval, és az egész technológia nem ér semmit.
-A nemlineáris rendszerek felépítéséhez kiváló segédletet nyújt a Szabályozástechnika tárgy 5-6. gyakorlata, illetve annak felkészülési anyaga\cite[p.~319-354]{szabtech}, így erre nem térünk ki. Amennyiben a rendszermodellt a Jacobi mátrixok segítségével generáltuk, célszerűbb közvetlenül azt felhasználni a szimulációban a blokkokból felépített rendszer helyett, így nem csak paraméter-, hanem rendszerszintű változás esetén sem kell kézzel utólag módosítani a szimulátort.
+Figure \ref{fig:model} shows the simulation of the dynamics designed to test the control system (without inputs). A common programing analogy can describe how a discrete time \verb!Simulink! \verb!Model! works. The \textbf{States} block is the central element of the model, which stores the actual state variables. It is a \emph{Storage unit}, which acts as a variable in this case. It outputs the value of the input of the previous time-step (which can be considered as a single execution of commands in a loop). The \textbf{Direct measurement model} simulates the sensor readings for the given state variables, in the exact same form as the expected inputs from the hardware (e.g. it generates the signal of each individual optosensor and puts them into a vector (same as a 1-dimensional array), just like the signal that would be received from the Core).
+
+Based on the system dynamics and the current value of the state variables, the states of the car can change. For example, a nonzero speed results in a change of traveled distance for the next time-step, even when there are no inputs to the system. The product of the state variables and the system update matrix (\textbf{\underline{\underline{A}}}) results in a vector filled with the new states. In case of a linear system, \textbf{\underline{\underline{A}}} is constant. In case of a nonlinear system however, \textbf{\underline{\underline{A}}} depends on the current states. 
+
+Consider the above example with nonzero speed (\textbf{v}), a straight track, the distance from the track (\textbf{d}) and angular deviation from the track ($\delta$). While the change of \textbf{d} is a linear function of \textbf{v}, it is also a trigonometric function of $\delta$. The resulting function is nonlinear, which means \textbf{\underline{\underline{A}}} is a nonlinear function of $\delta$. 
+
+The Jacobian is a matrix of the first-order partial derivatives of the system\cite{jacobian}. It basically tells the effect of an individual state variable on the system. The summary of these effects result in the full system update.
+
+\begin{align}
+J =
+ \begin{bmatrix}
+  \frac{\partial F_1}{\partial x_1} & \cdots & \frac{\partial F_1}{\partial x_n} \\
+  \vdots  & \ddots & \vdots  \\
+  \frac{\partial F_n}{\partial x_1} & \cdots & \frac{\partial F_n}{\partial x_n}
+ \end{bmatrix}
+\end{align}
+
+If the system is linear, the elements of the matrix are constants. If the system in nonlinear, some elements of the matrix are functions of the state variables themselves.
 
 \begin{figure}[!ht]
     \centering
@@ -269,9 +256,9 @@ A nemlineáris rendszerek felépítéséhez kiváló segédletet nyújt a Szabá
     \label{fig:model}
 \end{figure}
 
-Ne feledjük, a szimulátor kimenete nem csupán az állapot, hanem a direkt mérési modell által előállított szimulált szenzorjelek, melyeket mesterségesen zajjal is terhelhetünk, hogy eggyel kevesebb meglepetés érjen a tényleges teszteléskor.
+The \textbf{Dynamic nonlinear system update matrix A} block contains a simple MATLAB script that builds the current system update matrix based on the Jacobian functions and the current states. Once we possess this, the system update phase can be executed just like in a linear case, with a matrix product. The resulting vector is the new set of state variables.
 
-\subsection{Implementation of a complex control system}
+\subsection{Implementation of the control system}
 
 Az irányítás tetszőlegesen bonyolult lehet, a RobonAUT-hoz készült megoldás 4 fő kritikus (működéshez elengedhetetlen) részre bontható:
 

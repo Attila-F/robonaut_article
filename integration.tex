@@ -43,17 +43,7 @@ Rögtön felhívnám a figyelmet, ha eddig nem vált volna nyilvánvalóvá, hog
 
 A példarendszerünk bemenete a vonal pozíciója, kimenete pedig a kívánt kormányszög. A főprogramunkból a következőképpen tudjuk meghívni a modellt:
 
-\lstset{escapechar=@,style=customc}
-\begin{lstlisting}[frame=single]
-	/* Pass inputs */
-	Controller_U.Position = line_position;
 
-	/* Update model */
-	Controller_step();
-
-	/* Receive outputs */
-	servo_position = Controller_Y.Servo;
-\end{lstlisting}
 
 Ezt a kódot kell egy olyan függvénybe beletennünk, melynek tudjuk biztosítani a periodikus meghívását.
 
