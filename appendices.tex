@@ -1,0 +1,45 @@
+\section{Generating the Jacobi matrix}
+\begin{lstlisting}
+    % Definition of system equations
+    d_dot = sin(Delta + Phi) * v;
+    Delta_dot = v/L * tan(Phi) + Kappa;
+    
+    % Computing the Jacobi matrices
+    A_sym = [0      diff(d_dot, Delta);
+             0      0                ];
+       
+    B_sym = [diff(d_dot, Phi);
+             diff(Delta_dot, Phi)];
+    
+    % Substitution of approximation points
+    A = double(subs(A_sym, [L, d, Delta, Phi, v],...
+        [L_car, 0, 0, 0, 1]));
+    B = double(subs(B_sym, [L, d, Delta, Phi, v],...
+        [L_car, 0, 0, 0, 1]));
+\end{lstlisting}
+
+\section{Linear full state feedback controller design}
+\begin{lstlisting}
+    % Definition of remaining state-space matrices
+    C = [1 0];
+    D = 0;
+    sys = ss(A,B,C,D);
+    
+    % Controller design
+    P = [-3 -3];
+    K = acker(A,B,P);
+    sys_c = ss(A-B*K, B, C, D);
+\end{lstlisting}
+
+\section{Call sw}
+\lstset{escapechar=@,style=customc}
+\begin{lstlisting}[frame=single]
+	/* Pass inputs */
+	Controller_U.Position = line_position;
+
+	/* Update model */
+	Controller_step();
+
+	/* Receive outputs */
+	servo_position = Controller_Y.Servo;
+\end{lstlisting}
