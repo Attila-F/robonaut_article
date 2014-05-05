@@ -31,10 +31,12 @@ The generated source code is functionally a perfect equivalent of the \verb!Simu
 
 \subsection{Deployment with FreeRTOS on STM32F4-Discovery Board}
 
-Freertos mint Core mit csinál? (beszélget a hardverrel, szenzorokkal, aktuárotoknak küld beavatkozó jeleket)
-Miért jó? (gyors hozzáférés a szenzorokhoz, pontos ütemezés a controllernek)
+As in many controlled processes, the timing of the controller program execution is crucial. Beside that it is also a time crucial task to process the I/O lines, convert the analog signals, and send status information to the supervisor computer over a wireless connection. It can be done with the integrated timer peripherals and with interrupt sequences, but the easiest way to handle a multi task problem like ours, is a \textbf{Real Time Operating System}. There are numerous implementation of these operating systems. We chose the FreeRTOS, which is a well known operating system in the industry, open-source, well documented and last but not least we have experience with it.
 
-\paragraph{Setting up the system}
+In our solution the FreeRTOS is responsible for the task scheduling, and provide a communication interface between the tasks. This way we can ensure that the sensors are read in the appropriate time, and the controller task will run in the specified time period. Also provides some useful tools to debug the application.
+%Freertos mint Core mit csinál? (beszélget a hardverrel, szenzorokkal, aktuárotoknak küld beavatkozó jeleket)
+%Miért jó? (gyors hozzáférés a szenzorokhoz, pontos ütemezés a controllernek)
 
-Mit kellett csinálni, hogy működjön? (FreeRTOS-t feltenni rá (max 1 mondat, ebbe nem megyünk bele!), hardver jeleket kiolvasni C-vel, hogy oda tudjuk adni a controllernek, matlab-ot rákötni egy interrupt-ra)
-Még mit kell csinálni, hogy működjön?? Max 1-2 mondat már csak.
+Setting up the system is quite easy in this point. We only have to include the FreeRTOS source files into our project.\footnote{A detailed description is available for many processors in the FreeRTOS website: http://www.freertos.org/} The next step is to write some low level driver to read the sensors, and initialize the actuators so this way we can connect these to the control system. It is also necessary to set up the communication between the tasks, so we can read the state of the controller and the other tasks real time.
+%Mit kellett csinálni, hogy működjön? (FreeRTOS-t feltenni rá (max 1 mondat, ebbe nem megyünk bele!), hardver jeleket kiolvasni C-vel, hogy oda tudjuk adni a controllernek, matlab-ot rákötni egy interrupt-ra)
+%Még mit kell csinálni, hogy működjön?? Max 1-2 mondat már csak.
