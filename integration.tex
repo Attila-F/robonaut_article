@@ -1,7 +1,7 @@
 \section{Integration}
 \label{sec:integration}
 
-\subsection{Structure of the code}
+\subsection{Structure of the generated code}
 
 If during the code generation \emph{Compact code placement} was used, only four files are generated:
 
@@ -25,15 +25,15 @@ In the following we assume that the name of the Controller block was "controlsys
 
 The functions of the system are defined in the \textbf{controlsystem.c} and \textbf{controlsystem.h} files. The \textbf{rtwtypes.h} contains the unique type definitions of the code. The \textbf{ert\_main.c} is an exemplary main function that demonstrates the use of the others.
 
-\subsection{Using the code}
+\subsection{Using the controller source code}
 
-The generated source code is functionally a perfect equivalent of the \verb!Simulink! model. The system can be initialized using the \emph{controlsystem\_initialize()} function. It sets the 0 time in the model and the outputs obtain their initial values. Communication with the system is only possible through a unique interface provided by the generated code. The inputs are handled by the \emph{controlsystem\_U struct}. It contains fields each corresponding to a system input, matching it's name and type. If the inputs are set, calling the \emph{controlsystem\_step()} function runs the model once, for the period of one time sample. The outputs are stored in a structure similar to the input storage, called \emph{controlsystem\_Y}.
+The generated source code is functionally a perfect equivalent of the \verb!Simulink! model. A number of functions and variable structures are defined that implement an easy interface of control the module, and communication with the system is only possible through this unique interface provided by the generated code. The system can be initialized using the \emph{controlsystem\_initialize()} function. It sets the 0 time in the model and the outputs obtain their initial values. The inputs are handled by the \emph{controlsystem\_U} struct. It contains fields each corresponding to a system input, matching it's name and type. If the inputs are set, calling the \emph{controlsystem\_step()} function runs the model once, for the period of one time sample. The outputs are stored in a structure similar to the input storage, called \emph{controlsystem\_Y}.
 
 \subsection{Deployment with FreeRTOS on STM32F4-Discovery Board}
 
-As in many controlled processes, the timing of the controller program execution is crucial. Beside that it is also a time crucial task to process the I/O lines, convert the analog signals, and send status information to the supervisor computer over a wireless connection. It can be done with the integrated timer peripherals and with interrupt sequences, but the easiest way to handle a multi task problem like ours, is a \textbf{Real Time Operating System}. There are numerous implementation of these operating systems. We chose the FreeRTOS, which is a well known operating system in the industry, open-source, well documented and last but not least we have experience with it.
+As in many controlled processes, the timing of the controller program execution is crucial, as well as processing the I/O lines, converting the analogue signals and sending status information to the supervisor computer over a wireless connection. It can be implemented with the integrated timer peripherals and interrupt sequences, but in case of a multi task system, the application of a \textbf{Real Time Operating System} allows a more high-level approach. There are numerous implementations of this operating system family. We chose FreeRTOS, a popular open-source operating system in the industry, because of its detailed documentation and earlier work experiences with the operating system on STM32F4-Discovery. In addition, it provides useful features for application debugging.
 
-In our solution the FreeRTOS is responsible for the task scheduling, and provide a communication interface between the tasks. This way we can ensure that the sensors are read in the appropriate time, and the controller task will run in the specified time period. Also provides some useful tools to debug the application.
+In our solution the FreeRTOS is responsible for the task scheduling, and provide a communication interface between the tasks. This way we can ensure that the sensor readings and the controller task are conducted with precise timing. Through the operating system direct communication with the I/O lines are simple, and it handles the reading of the optoelectronic and proximity sensors and their processing on the Analogue to Digital converters of the board.
 %Freertos mint Core mit csinál? (beszélget a hardverrel, szenzorokkal, aktuárotoknak küld beavatkozó jeleket)
 %Miért jó? (gyors hozzáférés a szenzorokhoz, pontos ütemezés a controllernek)
 

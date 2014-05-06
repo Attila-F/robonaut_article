@@ -1,3 +1,6 @@
+\section*{Appendix}
+
+\appendix
 \section{Generating the Jacobi matrices}
 \label{app:jacobi}
 \begin{lstlisting}
@@ -32,3 +35,41 @@
     K = acker(A,B,P);
     sys_c = ss(A-B*K, B, C, D);
 \end{lstlisting}
+
+\section{Preparing MATLAB Coder for code generation}
+\label{app:rtw}
+
+The first step is to set up the solver. Open \emph{Simulation/Configuration parameters} (Ctrl + E) and set the \emph{type} to \emph{Fixed-step} and the \emph{Solver} to \emph{discrete}, in order to avoid having continuous-states in the controller. Next, set the sampling time of the model.
+Note: Set these preferences right after the creation of the empty Simulink project, because they have great effect on the simulation as well. A model built as a continuous time will not function properly with a discrete solver. Never build the module you plan to use for code generation in continuous time, and always set a discrete solver. Building the whole model like this is recommended, if deployment is intended. Alternatively, if a continuous time simulator is required, place the controller in an \textbf{Atomic Subsystem} that allows the special discrete-time treatment of the subsystem inside it.
+
+For the code generation, a \verb!MATLAB! supported compiler is required. The full list of compilers can be checked on the \verb!MathWorks! website. The recommendation of the authors is the Windows SDK compiler for Windows.
+Supported compilers: \href{http://www.mathworks.com/support/compilers/}{http://www.mathworks.com/support/compilers/}
+
+To set a compiler as active, or check the active compiler, use the \verb!mex -setup! command. The instructions will guide through the settings.
+
+\paragraph{Settings for STM32F4-Discovery Target}
+
+In \textbf{Hardware Implementation} menu set \textbf{Device Vendor} to \textbf{ARM Compatible}. Set the \textbf{Device type} to \textbf{ARM Cortex}.
+In \textbf{Code Generation} menu set \textbf{System target file} to \textbf{ert.tlc} (invokes the embedded coder).
+In \textbf{Interface} menu set \textbf{Code Replacement Library} to \textbf{GCC ARM Cortex-M3}.
+In case the generated model contains floating point types, turn on their support. If the support is turned off, but the model contains floating point types, a code generation-time error will appear, pointing to these settings. This is true for other related interface support issues. Turning off the unnecessary or unintended supports is recommended as they point out model errors in an early stage. Useful when designing fixed-point tools.
+
+In \textbf{Report} menu it is optional to set the \emph{Create code generation report}.
+It generates a documentary report of the generated code, containing links from the source code to the model. Useful for debugging.
+In \textbf{Code Generation} menu it is optional to set the \textbf{Code optimizations}.
+The performance will increase for the cost of increased duration of code generation. It is recommended to turn off the generation of a make file and not building the model, because only the source files are used.
+In \textbf{Code placement} it is optional and recommended to set the \textbf{Code packaging} to \textbf{Compact}. Less source files will be generated and the integration will become somewhat easier.
+
+To generate the source code, right clock on a subsystem or block, then \textbf{C/C++ Code} $\rightarrow$ \textbf{Build This Subsystem} (In older \verb!MATLAB! versions look for Real Time Workshop). The generated source files are placed in the current \verb!MATLAB! folder.
+
+\paragraph{Summary:}
+
+\begin{itemize}
+
+	\item \textbf{MATLAB Command Line} $\rightarrow$ \textbf{mex -setup}
+    \item \textbf{Solver} $\rightarrow$ Fixed step, discrete
+    \item \textbf{Hardware Implementation} $\rightarrow$ Device type $\rightarrow$ ARM Cortex
+    \item \textbf{Code Generation} $\rightarrow$ System Target File $\rightarrow$ ert.tlc
+    \item \textbf{Interface} $\rightarrow$ Code Replacement Library $\rightarrow$ GCC ARM Cortex-M3
+
+\end{itemize}
