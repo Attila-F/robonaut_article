@@ -3,7 +3,7 @@
 
 % What is the problem?
 
-RobonAUT is an annual contest of the Department of Automation and Applied Informatics of the Budapest University of Technology and Economics. Each year many teams design and build autonomous model cars to rival on an obstacle course, and compete each other on a race track. The robots must be completely autonomous, lacking any remote control, and any sort of external intervention during the race is punished. The team whose car scores the highest wins the contest\cite{rules}.
+RobonAUT is an annual contest of the Department of Automation and Applied Informatics of the Budapest University of Technology and Economics. Each year many teams design and build autonomous model cars to compete on an obstacle course, and rival each other on a race track. The robots must be completely autonomous, lacking any remote control, and any sort of external intervention during the race is punished. The team whose car scores the highest wins the contest\cite{rules}.
 
 % Motivation, why is it interesting and important?
 
@@ -11,7 +11,7 @@ Even with such simple robots, there are enormous amounts of work, including the 
 
 % Problem statement, why is it hard? (E.g., why do naive approaches fail?)?
 
-Usually a low-level approach to the problem is the best approach to small projects like this. Although good ideas people have used successfully in the past must not be forgotten, innovation is crucial. For these reasons, we decided to look beyond the boundaries of classic software development, to find a solution that enables us to concentrate on the important aspects, instead of being lost in the thousand lines of source code. However, utilizing complex technologies and integrating several design software is not an easy task. It might present more problems than solutions, because the available time for the development is very limited.
+Usually a low-level approach to the problem is the best approach to small projects like this. Although good ideas people have used successfully in the past must not be forgotten, innovation is crucial. Therefore we decided to look beyond the boundaries of classic software development, to find a solution that enables us to concentrate on the important aspects, instead of being lost in the thousand lines of source code. However, utilizing complex technologies and integrating various pieces of design software is not an easy task. It might present more problems than solutions, because the available time for the development is very limited.
 
 % Why hasn't it been solved before? (Or, what's wrong with previous proposed solutions? How does mine differ?)
 
@@ -19,7 +19,7 @@ Although these tools can greatly enhance the productivity of the developers, Mod
 
 % What are the key components of my approach and results? Also include any specific limitations.
 
-We wanted to demonstrate that a scaled-down approach is possible using this method. Because the project is relatively small, the functional software and the operating system responsible for the core services can be integrated manually, and most of the advantages can be retained while keeping the technology simple. We used \verb!MATLAB-Simulink! to create a \emph{Rapid Prototyping} environment, in which using a simulated model of the system the software development can be started weeks before an actual hardware prototype. Using automated code-generation for the target hardware, the core functions can be augmented with features designed and verified in a swift visual model-based environment, to overcome the challenges the contest presents. The development cycle becomes shorter and the syntactic reliability of the resulting system is guaranteed by the code generation software.
+We wanted to demonstrate that a scaled-down approach is possible using this method. The functional software and the operating system responsible for the core services can be integrated manually, and most of the advantages can be retained while keeping the technology simple. We used \verb!MATLAB-Simulink! to create a \emph{Rapid Prototyping} environment, in which using a simulated model of the system the software development can be started weeks before an actual hardware prototype. Using automated code-generation for the target hardware, the core functions can be augmented with features designed and verified in a swift visual model-based environment, to overcome the challenges the contest presents. The development cycle becomes shorter, and the result is a syntactically correct code free of any compile or runtime errors. This is guaranteed by the code generation software.
 
 \paragraph{Outline}
 \begin{itemize}
