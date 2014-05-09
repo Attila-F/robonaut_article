@@ -2,53 +2,53 @@
 
 \paragraph{Classic software design approach}
 
-In every software development project, a visual sketch of the system is often created in order to aid the design process, and act as a visual guide in the documentation. However, implementing whatever design created earlier is not always trivial. The primary and most widespread embedded programming language, the \verb!C!, has been designed as a "Professional Programmers Language", and it supports only very basic syntax checks, but nothing ensures that the program will behave as the programmer intended. The designer must choose to take the risks of unexpected errors, or a thorough testing must be conducted in order to ensure the correct and reliable functioning of the system. While the testing of simple systems can be finished quickly, dangers arose when the same method is used in a large multi-developer project. Most of the industry have responded to this by scaling up the work force that gave birth to a number of strict project safety standards, internal regulations and coding guidelines\cite{misra}, and led to a huge amount of overhead in human labour in each software development project.
+In every software development project, a visual sketch of the system is often created in order to aid the design process, and act as a visual guide during the documentation. However, implementing whatever design created earlier is not always trivial. The primary and most widespread embedded programming language, the \verb!C!, has been designed as a "Professional Programmers Language", and it supports only very basic syntax checks, but nothing ensures that the program will behave as the programmer intended. The designer must choose to take the risks of unexpected errors, or a thorough testing must be conducted in order to ensure the correct and reliable functioning of the system. While the testing of simple systems can be finished quickly, dangers arise when the same method is used in a large multi-developer project. Most of the industry have responded to this by scaling up the work force that gave birth to a number of strict project safety standards, internal regulations and coding guidelines\cite{misra}, and led to a huge amount of overhead in human labour in each software development project.
 
 \paragraph{Model Based Design}
 
-As described earlier, the Model based design is based on solving the problems in a more visual environment. During the development, there is  limited connection between the designed software and the real hardware, as many of the solutions can be verified using the simulated model of the system, resulting in an accelerated development process\cite{locomotive}.
+As described earlier, the Model based design is based on solving the problems in a more visual environment. During the development, there is  limited connection between the designed software and the target hardware, as many of the solutions can be verified using the simulated model of the system, resulting in an accelerated development process\cite{locomotive}.
 Due to the heavy reliance on abstract models and their connections, even if significant changes occur in the specifications, only minimal amount of modification is required to the code that formulates the final software. This advantage can not be over emphasized, because the final specifications of the system are rarely known, especially in prototype development.
-Although it has its own limitations as well. Model based design relies on complex tools to do most of the work, and their operation and integration into the existing project is difficult and become less practical or limited because of the lack of sufficient support as well.
+Although it has its own limitations as well, model based design relies on complex tools to do most of the work, and their operation and integration into the existing project is difficult and become less practical or limited because of the lack of sufficient support as well.
 
 \paragraph{Background}
 
-For the \textbf{RobonAUT 2014} contest, we used \verb!MATLAB! and \verb!Simulink! to implement the control system and the state machine. We chose the \verb!MathWorks! product family, because \verb!Simulink! has extensive support for model and simulation based development, and allows the generation of generic \verb!C! source code that can be later used on any hardware that is capable of running \verb!FreeRTOS! or any other hard real-time operating systems. The authors have used these technologies before successfully in industrial environment that allowed us to follow out the concept.
+For the \textbf{RobonAUT 2014} contest, we used \verb!MATLAB! and \verb!Simulink! to implement the control system and the state machine. We chose the \verb!MathWorks! product family, because \verb!Simulink! has extensive support for model and simulation based development, and allows the generation of \verb!C! source code that can be later used on any hardware that is capable of running \verb!FreeRTOS! or any other hard real-time operating systems. The authors have used these technologies before successfully in industrial and academic environment, which allowed us to follow out the concept.
 
-\section{Development of the software}
+\section{Model based design of the system}
 
 % Contributions
 
-Figure \ref{fig:architecture} shows the basic system connections and stages of deployment. A typical system designed in \verb!MATLAB! can be divided to the following modules.
+Figure \ref{fig:architecture} shows the basic system connections and stages of deployment. A typical system designed in \verb!MATLAB! can be divided to the following parts.
 
 \begin{enumerate}
 \item A \verb!MATLAB! \verb!Script! that defines the system model and computes the simulator and controller parameters.
 \item Based on these parameters we can build the simulator and control software in \verb!Simulink! that interact with each other.
-\item If the system response in the simulation is correct, the controller is ready for code generation, and field-testing.
+\item If the system response in the simulation is correct, the controller is ready for code generation and field-testing.
 \item The generated source code is invoked by the core operating system, the \verb!FreeRTOS! in this case
 \item All communication with the hardware in implemented by the Core.
 \end{enumerate}
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=\linewidth]{img/architecture}
+    \includegraphics[width=0.7\linewidth]{img/architecture}
     \caption{Connections and dependencies}
     \label{fig:architecture}
 \end{figure}
 
-Although in most cases the core unit of a complex software will be an operating system, it is not required. Therefore we use the \emph{Core} expression in this paper, but it refers to the FreeRTOS operating system in our case.
+Although in most cases the core unit of a complex software will be an operating system, it is not necessary. Therefore we use the \emph{Core} expression in this paper, but it refers to the FreeRTOS operating system in our case.
 
 \subsection{Functional description}
 
-During the race, the track is marked by a dark line on light ground. The car follows this line that guides it through certain checkpoints. Between checkpoints, there are obstacles that need to be passed in a specific way. Each obstacle is marked in a unique manner that allows the car to unambiguously determine, based on simple on-board sensors, which function it has to execute in the current segment.
+During the race, the track is marked by a dark line on light ground. The car follows this trail that guides it through certain checkpoints. In between there are obstacles that need to be passed in a specific way. Each obstacle is marked in a unique manner that allows the car to unambiguously determine, based on simple on-board sensors, which function it has to execute in the current segment.
 
-The recommended sensor outfit\cite[sensors] is a number of optoelectronic sensors beneath the front axis or bumper of the car, and a couple of infrared proximity sensors to cover the front and the two sides of the car. Certain teams extended this setup with a camera for image-recognition, a second optosensor array, ultrasound proximity sensors and other methods. We sticked to the basic recommended sensor outfit, and this paper will not consider any other layouts.
+The recommended sensor outfit\cite{sensors} is a number of optoelectronic sensors beneath the front axis or bumper of the car, and a couple of infrared proximity sensors at the front and two sides of the car. Certain teams extended this setup with a camera for image-recognition, a second optosensor array or ultrasound proximity sensors, but this paper will not consider any of these layouts.
 
 \subsection{Building a model}
 
 The first step in model based design is to create a model of the system, based on the functional description and known sensor fitting. To follow the line, the signals of the optical array must be processed and a control system must use this input to keep the car on the track. Let's define the following state variables:
 
 \begin{center}
-  \begin{tabular}{| c | p{0.8\linewidth} |}
+  \begin{tabular}{| c | p{0.7\linewidth} |}
 \hline
     d & Position error: The shortest distance between the centre of the front optical array and the centre of the track \\ \hline
     $ \delta $ & Angular error: The angle between the centreline of the body and the tangent of the track \\ \hline
@@ -73,7 +73,7 @@ Other variables with temporary significance might be defined in the text before 
 
 \paragraph{Formulating the system model}
 
-Knowing the dynamical system equations~(\ref{eq:of1}, \ref{eq:of2}), and parameters (L: wheelbase), we can formulate the \textbf{A} (system transition) and \textbf{B} (system update) matrices linearly approximated in an equilibrium state $(d = 0; \delta = 0; v = 1)$ ~(\ref{eq:of3}).
+Knowing the dynamical system equations~(\ref{eq:of1}, \ref{eq:of2}), and parameters (L: wheelbase), we can formulate the \textbf{A} and \textbf{B}\footnote{The system is discrete-time, the continuous-time notation will be used throughout the paper, for better readability.} matrices based on their linear approximations in an equilibrium state $(d = 0; \delta = 0; v = 1)$ ~(\ref{eq:of3}).
 
 \begin{align} 
     \dot{d} &= sin(\delta + \Phi) \cdot v  \label{eq:of1} \\ 
@@ -144,29 +144,10 @@ Knowing the dynamical system equations~(\ref{eq:of1}, \ref{eq:of2}), and paramet
         \end{bmatrix}
      \end{align}
 
-Instead of hard-coding the system matrices into the script, we can apply a different method that is nicer for the model based approach, by using the \verb!MATLAB! \verb!Symbolic! \verb!Toolbox!. This package allows the automatic generation of the Jacobi-matrices of the system[see Appendix \ref{app:jacobi}], so the inputs are narrowed down to the system parameters and non-linear dynamic equations 
-Furthermore, this way we can hold on to a lot more information that can later be used to generate a non-linear state observer, Extended Kalman Filter, or Hybrid Linear Controller.
+Instead of hard-coding the system matrices into the script, we can apply a different method that is nicer for the model based approach, by using the \verb!MATLAB! \verb!Symbolic! \verb!Toolbox!. This package allows the automatic generation of the Jacobi-matrices of the system, so the inputs are narrowed down to the system parameters and non-linear dynamic equations.
+Furthermore, this way we can hold on to a lot more information that can later be used to generate a non-linear state observer, Extended Kalman Filter\cite{ekf}, or Hybrid Linear Controller for additional features in a complex system\cite{hybrid}.
      
-\begin{minipage}{0.45\linewidth}
-    \begin{align}
-        A_J =
-        \begin{bmatrix}
-           \frac{\partial \dot{d}}{\partial d} & \frac{\partial \dot{d}}{\partial \delta} \\
-           & \\
-           \frac{\partial \dot{\delta}}{\partial d} & \frac{\partial \dot{\delta}}{\partial \delta}
-         \end{bmatrix}
-     \end{align}
-\end{minipage}
-\begin{minipage}{0.45\linewidth}
-    \begin{align}
-        B_J =
-         \begin{bmatrix}
-               \frac{\partial \dot{d}}{\partial \Phi} \\
-               \\
-               \frac{\partial \dot{\delta}}{\partial \Phi}
-        \end{bmatrix}
-     \end{align}
-\end{minipage}
+
 
 \paragraph{Control system}
 
@@ -201,7 +182,7 @@ Note: $\delta$ can be directly measured if the robot is equipped with multiple o
 
 \subsection{Building the simulation environment}
 
-When a sufficient model and controller are available, it is time to build the simulation environment. In case of a simple system, at this point the controller could be implemented directly in \verb!C!, but if the system is more complex, it is better practice to follow through the model based design. To test the behaviour of the system, the controller and the simulator must be implemented in \verb!Simulink! as well. Figure \ref{fig:simenvironment} shows the model based development environment. Because the Controller model and the Controller source code are identical, the key is to design a simulator that is deceptively similar to the real system, from the controller's point of view. This is the reason why Direct and Inverse Measurement (msment) models are required.
+When the system model and controller are available, it is time to build the simulation environment. In case of a simple system, at this point the controller could be implemented directly in \verb!C!, but if the system is more complex, it is better practice to follow through the model based design. To test the behaviour of the system, the controller and the simulator must be implemented in \verb!Simulink! as well. Figure \ref{fig:simenvironment} shows the model based development environment. Because the Controller model and the Controller source code are identical, the key is to design a simulator that is deceptively similar to the real system, from the controller's point of view. This is the reason why Direct and Inverse Measurement (msment) models are required.
 
 \begin{figure}[!ht]
     \centering
@@ -211,17 +192,17 @@ When a sufficient model and controller are available, it is time to build the si
     \label{fig:simenvironment}
 \end{figure}
 
-Between the simulator, and between the Core and the Controller Source Code the actual sensor signals travel through a common interface, in the same form. The modules are interchangeable, without any functional loss. The modules themselves in the inside are working with the real (and estimated) state variables. The measurement models are mere encoding and decoding interfaces.
+Between the simulator and model, and between the Core and the Controller Source Code the actual sensor signals travel through a common interface, in the same form. The modules are interchangeable, without any functional loss. The modules themselves in the inside are working with the real (and estimated) state variables. The measurement models are mere encoding and decoding interfaces.
 
-Although \verb!MATLAB! is a dynamic typing language, it is good practice to fix the data type of the signals, especially if the software is developed for an embedded system. The default signal type is \emph{Double}, but it should be overridden to \emph{Single}, or \emph{Integer} to spare the limited processing capabilities of the system.
+%Although \verb!MATLAB! is a dynamic typing language, it is good practice to fix the data type of the signals, especially if the software is developed for an embedded system. The default signal type is \emph{Double}, but it should be overridden to \emph{Single}, or \emph{Integer} to spare the limited processing capabilities of the system.
 
 \subsection{Simulator model}
 
 The controller that was designed earlier is based on the linear approximation of the system, but the simulator must always represent the full non-linear system, or the whole model based design effort is pointless. The system can be created with basic \verb!Simulink! blocks. However, exploiting the technique described earlier to generate the Jacobi matrices of the system, we can use this directly to generate a full representation.
 
-Figure \ref{fig:model} shows the simulation of the dynamics designed to test the control system (without inputs). A common programming analogy can describe how a discrete time \verb!Simulink! \verb!Model! works. The \textbf{States} block is the central element of the model, which stores the actual state variables. It is a \emph{Storage unit}, which acts as a variable in this case. It outputs the value of the input of the previous time-step (which can be considered as a single execution of commands in a loop). The \textbf{Direct measurement model} simulates the sensor readings for the given state variables, in the exact same form as the expected inputs from the hardware, by generating the signal of each individual optosensor and putting them into a vector (same as a 1-dimensional array), just like the signal that is received from the Core.
+Figure \ref{fig:model} shows the simulation of the dynamics designed to test the control system (without inputs). A common programming analogy can describe how a discrete time \verb!Simulink! \verb!Model! works. The \textbf{States} block is the central element of the model, which stores the actual state variables. It is a \emph{storage unit}, which acts as a variable in this case. It outputs the value of the input of the previous time-step (which can be considered as a single execution of commands in a loop). The \textbf{Direct measurement model} simulates the sensor readings for the given state variables, in the same form as the expected inputs from the hardware, by generating the signal of each individual optosensor and putting them into a vector (same as a 1-dimensional array), just like as it is received from the Core.
 
-Based on the system dynamics and the current value of the state variables, the states of the car can change. For example, a nonzero speed results in a change of traveled distance for the next time-step, even when there are no inputs to the system. The product of the state variables and the system update matrix (\textbf{\underline{\underline{A}}}) results in a vector filled with the new states. In case of a linear system, \textbf{\underline{\underline{A}}} is constant. In case of a nonlinear system however, \textbf{\underline{\underline{A}}} depends on the current states. 
+Based on the system dynamics and the current value of the state variables, the states of the car can change. For example, a nonzero speed results in a change of traveled distance for the next time-step, even when there are no inputs to the system. The product of the state variables (\textbf{x}) and the system update matrix (\textbf{A}) results in a vector filled with the new states. In case of a linear system, \textbf{A} is constant. In case of a nonlinear system however, \textbf{A} depends on the current states. 
 
 Consider the above example with nonzero speed (\textbf{v}), a straight track, the distance from the track (\textbf{d}) and angular deviation from the track ($\delta$). While the change of \textbf{d} is a linear function of \textbf{v}, it is also a trigonometric function of $\delta$. The resulting function is nonlinear, which means \textbf{\underline{\underline{A}}} is a nonlinear function of $\delta$. 
 
@@ -229,11 +210,25 @@ The Jacobian is a matrix of the first-order partial derivatives of the system\ci
 
 \begin{align}
 J =
- \begin{bmatrix}
-  \frac{\partial F_1}{\partial x_1} & \cdots & \frac{\partial F_1}{\partial x_n} \\
-  \vdots  & \ddots & \vdots  \\
-  \frac{\partial F_n}{\partial x_1} & \cdots & \frac{\partial F_n}{\partial x_n}
- \end{bmatrix}
+		 \begin{bmatrix}
+		  \frac{\partial F_1}{\partial x_1} & \cdots & \frac{\partial F_1}{\partial x_n} \\
+		  \vdots  & \ddots & \vdots  \\
+		  \frac{\partial F_n}{\partial x_1} & \cdots & \frac{\partial F_n}{\partial x_n}
+		 \end{bmatrix}
+\longrightarrow
+ A_J =
+		 \begin{bmatrix}
+           \frac{\partial \dot{d}}{\partial d} & \frac{\partial \dot{d}}{\partial \delta} \\
+           & \\
+           \frac{\partial \dot{\delta}}{\partial d} & \frac{\partial \dot{\delta}}{\partial \delta}
+         \end{bmatrix}
+; \quad
+B_J =
+         \begin{bmatrix}
+               \frac{\partial \dot{d}}{\partial \Phi} \\
+               \\
+               \frac{\partial \dot{\delta}}{\partial \Phi}
+         \end{bmatrix}
 \end{align}
 
 If the system is linear, the elements of the matrix are constants. If the system in nonlinear, some elements of the matrix are functions of the state variables themselves.
@@ -243,7 +238,7 @@ If the system is linear, the elements of the matrix are constants. If the system
     \includegraphics[width=0.7\linewidth]{img/sys}
     \centering
     \vspace{-30pt}
-    \caption{Jacobi-mátrix alapú nemlineáris szimulátor blokkdiagram}
+    \caption{Simulator model based on Jacobian matrices}
     \label{fig:model}
 \end{figure}
 
@@ -251,39 +246,27 @@ The \textbf{Dynamic nonlinear system update matrix A} block contains a simple MA
 
 \subsection{Implementation of the control system}
 
-To describe the implementation of the entire control system is out of the scope of this paper, however, key aspects of the software will be highlighted. The visual development of the software requires a different way of thinking than traditional source code writing. Therefore, we encourage the reader to design his or her own control system based on the supplied information and examples, in order to get a first hand experience in model based design.
+To describe the implementation of the entire control system is out of the scope of this paper, however, key aspects of the software will be highlighted. The visual development of the software requires a different way of thinking than working with traditional source code. Therefore, we encourage the reader to design his or her own control system, in order to get a first hand experience in model based design.
 
 \paragraph{Inverse measurement model}
 
 The implementation of the inverse measurement model described earlier. During the race, multiple signals provide information about the track (optosensor array, side proximity sensors), therefore an inverse measurement model must be derived and realized for each of them, to provide the system states for the controller.
 
-\paragraph{Signal processing and state estimation}
-
-Although basic processing might be required to enhance the raw signal quality before the inverse measurement model, serious processing should be implemented after. If the Jacobian matrices are known, they can be used to create an Extended Kalman Filter (EKF) that serves a dual purpose as a powerful filter and statistically optimal state estimator.
-
 \paragraph{Controller}
 
-Using model based design, several controller implementations can be evaluated quickly by testing and comparing them using the dynamic simulation of the model. A word of caution though: an inferior simulator can negatively influence the results of the comparison. Always introduce the major physical limitations to the system, for example the nonzero transition time of the steering servo between states.
+Although basic processing might be required to enhance the raw signal quality before the inverse measurement model, any serious processing should be implemented in the next stage. Using model based design, several controller implementations can be evaluated quickly by testing and comparing them using the dynamic simulation of the model. A word of caution though: an inferior simulator can negatively influence the results of the comparison. Always introduce the major physical limitations to the system, for example the non-zero transition time of the steering servo between states.
 
 \subsection{High level control, state machine}
 
-\verb!MATLAB! has an extension called \verb!Stateflow! dedicated to the development of state machines. It supports a wide range of features including subcharts, temporal logic and code generation of course, making it a very powerful tool. Figure \ref{fig:stateflow} shows the top layer of the state machine implementation of the obstacle course in \verb!Stateflow!. It is primarily used to detect certain sections during the race based on the external signals, and take over the control of the car at some obstacles to perform an action like slalom or automated parking.
+\verb!MATLAB! has an extension called \verb!Stateflow! dedicated to the development of state machines. It integrates seamlessly with simulink models, and supports a wide range of features including subcharts, temporal logic and code generation as well, making it a very powerful tool. Figure \ref{fig:stateflow} shows the top layer of the state machine implementation of the obstacle course in \verb!Stateflow!. It is primarily used to detect certain sections during the race based on the external signals, and take over the control of the car at some points to perform an action like the automated parking.
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=\linewidth]{img/stateflow}
+    \includegraphics[width=0.7\linewidth]{img/stateflow}
     \centering
     \caption{State machine diagram of the obstacle course}
     \label{fig:stateflow}
 \end{figure}
-
-\subsection{Code generation}
-
-If the controller is implemented and tested, it's ready for \verb!C! code generation (or \verb!C++!, \verb!Verilog! és \verb!PLC!). It acts as some sort of a static object, as it has its inner states and member functions, but does not need to be instantiated. Appendix \ref{app:rtw} describes the requited settings of the system model to produce a suitable controller source code. Then find the correct subsystem that acts as the controller, and build the model with the \verb!MATLAB! \verb!Coder!. In a large system, it's possible to generate separate source code implementations of different subsystems. Though the integration complexity increases, it can provide enhanced functionality, or excellent reuseability[should cite something?].
-
-
-
-
 
 
 
